@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>ملخصات كلية نظم وتكنولوجيا المعلومات الجامعة الاردنية العقبة</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    select, label { display: block; margin-top: 15px; width: 100%; padding: 8px; }
+    ul { list-style-type: none; padding: 0; }
+    li a { display: block; padding: 8px; margin: 4px 0; background: #f0f0f0; text-decoration: none; color: #333; border-radius: 5px; }
+    li a:hover { background-color: #cceeff; }
+    body::before {
+      content: "AL Faza'a Dragon Summary";
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-30deg);
+      font-size: 50px;
+      color: rgba(0, 0, 0, 0.1);
+      z-index: 0;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    body > * {
+      position: relative;
+      z-index: 1;
+    }
+    .no-content { color: #999; font-style: italic; }
+  </style>
+</head>
+<body>
+
+  <label for="major">اختر التخصص:</label>
+  <select id="major" onchange="loadCategories()">
+    <option value="">-- اختر التخصص --</option>
+    <option value="bit">Business Information Technology</option>
+    <option value="cis">Computer Information Systems</option>
+    <option value="cyber">Cyber Security</option>
+  </select>
+
+  <label for="category">اختر القسم:</label>
+  <select id="category" onchange="loadTopics()" disabled>
+    <option value="">-- اختر القسم --</option>
+  </select>
+
+  <label for="topic">اختر المادة:</label>
+  <select id="topic" onchange="loadContent()" disabled>
+    <option value="">-- اختر المادة --</option>
+  </select>
+
+  <div id="content" style="display: none;">
+    <h3>Testbanks:</h3>
+    <ul id="testbanksList"></ul>
+
+    <h3>Summaries:</h3>
+    <ul id="summariesList"></ul>
+
+    <h3>Books:</h3>
+    <ul id="booksList"></ul>
+  </div>
+
+  <script>
+    const data = {
+      bit: {
+        "الجامعة الاجباري": {
+          "الريادة والابتكار": {
+            testbanks: [
+              { name: "اختبار 1", url: "https://docs.google.com/forms/d/e/1FAIpQLSfCU6N3g3-Gz4hl1eMaI8qnRZbpCkCGjtdlfJrmuBwrp9Ak-A/viewform?usp=dialog" }
+            ],
+            summaries: [
+              { name: "ملخص الكتاب المقرر للمادة 2025", url: "https://mega.nz/file/4hwlHKBJ#YbF3i6qntexo9vcTgeGfYz3SbHkK2G6ihBLGuQW-mJA" },
+              { name: "ملخص الكتاب", url: "https://mega.nz/file/AoplGABL#cAoIOlEeQ1TIeOam8ywMEYm-tMo5LELLqCpOdPmKSzo" }
+            ],
+            books: [
+              { name: "كتاب الريادة والابتكار", url: "https://mega.nz/file/Rw4Q0ZqC#-Cf8NrFpK9rrH4-XhgZuAWYA--YdH_f-pd2y1EOh_wg" }
+            ]
+          },
+          "المهارات الحياتية والعملية": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص", url: "https://drive.google.com/file/d/18LjkCASkrHtUZG3Vod8T-qrNxLg-18R4/view?usp=sharing" }
+            ],
+            books: [
+              { name: "مهارات حياتية(تسويق الكتروني)", url: "https://mega.nz/file/spgXiDLS#Dxjp0hUIsWln1bhSlb9R0fEHuxCfxmKnGJWluCarbWY" },
+              { name: "مادة مهارات حياتية (قراءة ذاتية)", url: "https://mega.nz/file/d8BAUJiJ#HO64YjQpKzO91EVn-6grO1si4IYy7BRW2jZ2mhvWD4g" }
+            ]
+          }
+        },
+        "الجامعة الاختياري": {
+          "القدس": {
+            testbanks: [
+              { name: "الاختبار 1 للميد والفاينل", url: "https://t.me/jerusalemTestBank" },
+              { name: "الاختبار 2 للميد", url: "https://drive.google.com/file/d/1TX9SkYxoa2W_T46GtPUXcb6u-vhtGlr2/view?usp=sharing" },
+              { name: "الاختبار 3 للفاينل", url: "https://drive.google.com/file/d/18Y5Cw2dK_VXu0PG27WbvT_WkhaOIrlYM/view?usp=sharing" }
+            ],
+            summaries: [
+              { name: "ملخص", url: "https://drive.google.com/file/d/1AYCz-3T4jiLreHDBXSFYjhBOMMXoeQVZ/view?usp=sharing" }
+            ],
+            books: [
+              { name: "مادة القدس محددة", url: "https://drive.google.com/file/d/1aqK1H83YqVPC0PKMXJzJsGsjn_1U_PBE/view?usp=sharing" }
+            ]
+          }
+        },
+        "التخصص الاجباري": {
+          "منطق رقمي": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص 1 ملاحظة تحتج حساب بموقع Luminpdf.com حتى يفتح معك", url: "https://drive.google.com/file/d/1FKexfdiRC_KqFgk0rpRR9KesJR6dPe18/view?usp=sharing" },
+              { name: "ملخص 2", url: "https://drive.google.com/file/d/1yfhA_fE7PB-qTMRxLllIIMwqvmrNAn0L/view?usp=sharing" }
+            ],
+            books: [
+              { name: "الكتاب الاول", url: "https://mega.nz/file/U4pmDZQK#LSZPuwyw7R9z7FeF5hqI430RTlkb711b7qS_KsOCAR0" },
+              { name: "الكتاب الثاني", url: "https://mega.nz/file/QxogzbBb#wlZIK7p9x8EetY_ZgSZ75V6S-17cupWaPwauYR4Yrxg" }
+            ]
+          },
+          "شبكات الحاسوب (1)": {
+            testbanks: [
+              { name: "الاختبار 1", url: "https://t.me/+StZhylXa1sY5MDM0" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1iOSEIU48xB5XNWJDlYSrT9Nb6lwi2sA4/view?usp=sharing" }
+            ],
+            books: [
+              { name: "كتاب المادة 1", url: "https://mega.nz/file/J4gCFKTa#GybVO3h4nNisLciIAoXzUwRwcVYKrXAOLBDebt97yYs" },
+              { name: "كتات المادة 2", url: "https://mega.nz/file/h94HkCCS#oGcogYMcNB5md1uc1Zq6pQS7gbpts6ef9_IY0UzyMrM" }
+            ]
+          },
+          "مستودعات البيانات والتنقيب عن البيانات": {
+            testbanks: [
+              { name: "الاختبار 1", url: "https://t.me/+CbggANGqjtliNjU0" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1OsrT8ICZppcXd5zYA-gFbHIb7Fk-HLP9/view?usp=sharing" }
+            ],
+            books: [
+              { name: "كتاب المادة", url: "https://mega.nz/file/dpI1AIzL#DwfYM3cWekvb42JZpxL_Yyz3y7mBeoDJ6f64MCxzaSg" }
+            ]
+          },
+          "الذكاء الاصطناعي": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1s1y9ygiBkfXrJf7EKRaRoDUr0n9vG3PA/view?usp=sharing" }
+            ],
+            books: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ]
+          },
+          "سرية وأمان المعلومات": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1VnQI8NCx3R35W2Af8dVmPDTv8A03fxj9/view?usp=sharing" }
+            ],
+            books: [
+              { name: "كتاب المادة", url: "https://mega.nz/file/5gYSlB6A#6IQ1GX3k8xkK0OcwlVERxZCTtfUDIi00ivcKlq3PBwo" }
+            ]
+          },
+          "تطوير تطبيقات الويب (2)": {
+            testbanks: [
+              { name: "الاختبار 1", url: "https://drive.google.com/file/d/1MJztvFqsTHMO_biaqDhMo6c3jnuc5xbQ/view?usp=sharing" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1GKqKBKd4KZNh-Li7khi2O_pMrhyAtoRi/view?usp=sharing" }
+            ],
+            books: [
+              { name: "كتاب المادة", url: "https://mega.nz/file/x4B0USpb#4DpoBHi5CF4KQVhAtB1nKfAfTRpsrw-mFSPQ2-ZY7A4" }
+            ]
+          },
+          "نظم ادارة المعرفة": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1aL5gVLk_IwrxK2kmemN6YqgaqZTrnPi7/view?usp=sharing" }
+            ],
+            books: [
+              { name: "كتاب المادة", url: "https://mega.nz/file/UlgWBY5a#oQsaxMUwgi4oj8205fvB7iK76gsDDTwlfxLCBh-kcYM" }
+            ]
+          },
+          "الاعمال الالكترونية": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1gUEHzxwrxuy7VZI-OD44i4-IZEDTvtkz/view?usp=sharing" }
+            ],
+            books: [
+              { name: "كتاب المادة", url: "https://mega.nz/file/Q0hFTAZZ#W5VaqqX4BcAVqqUq_DQtZUphHu5Q5mTy_2go8Ff52yw" }
+            ]
+          },
+          "برمجة الكالنات الموجهة(1)": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1mBQxvkgsE0hoKmNrrmGEzDRWWiR-soul/view?usp=sharing" }
+            ],
+            books: [
+              { name: "كتاب المادة", url: "https://mega.nz/file/J5xlAbJS#tS5_fgstHXKig5jU9YIbaGYMtafCRGZj6IB5gUGXg5Y" }
+            ]
+          }          
+        },
+        "التخصص الاختياري": {
+          "الوسائط المتعددة": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1KJROMKh8OS3gt6QfkTJVXxMOw9xDL9T7/view?usp=sharing" }
+            ],
+            books: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ]
+          },
+          "لغات قواعد البيانات وادواتها": {
+            testbanks: [
+              { name: "الاختبار 1", url: "https://drive.google.com/file/d/1V0qgS9Wa-xOD4PbqVWvP4xKlbsjEYatI/view?usp=sharing" },
+              { name: "الاختبار 2", url: "https://drive.google.com/file/d/1ou_xip3KTd3fI2CAUydZZMvMLMKrlJxz/view?usp=sharing" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1TSXgnPdpe_NMGyxxFFto0feaOQ84418p/view?usp=sharing" }
+            ],
+            books: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ]
+          },
+          "البرمجة المرئية": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1sFYEqMtXdH79SNh2dXKaA5WD9P_gbT0T/view?usp=sharing" }
+            ],
+            books: [
+              { name: "كتاب المادة", url: "https://mega.nz/file/4pZyxYAb#jZKGgrMiDM2yw7_W229l_Nowz08jCu0xGmzeloKcnMU" }
+            ]
+          }
+        },
+        "الكلية الاجباري": {
+          "التفاضل والتكامل": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1lIpdEfYv_0OJe3BM1Kx8c_EgJtOnUM3X/view?usp=sharing" }
+            ],
+            books: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ]
+          },
+          "نظم قواعد البيانات": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1O2atbSgl30T__ILKd8qVS-KlLZWwrK8Z/view?usp=sharing" }
+            ],
+            books: [
+              { name: "كتاب المادة", url: "https://mega.nz/file/wopngYhQ#g8VGEn5l77KBHjMMNRsq3uAhzsNOuyIC7RJR2Bx9jUE" }
+            ]
+          },
+          "تطوير تطبيقات الويب (1)": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1tfyLGHejIQBf9BGWl5HrV-cGJ7ktnXje/view?usp=sharing" }
+            ],
+            books: [
+              { name: "كتاب المادة", url: "https://mega.nz/file/RgJCFbaD#qYJSyE1YyPrRo_su_HYiAGFoCVpF5CIG9V5kniv3nTM" }
+            ]
+          }
+        },
+        "اجبارية عامة": {
+          "مهارات اللغة العربية": {
+            testbanks: [
+              { name: "الاختبار 1 للفاينل", url: "https://mega.nz/file/B54TXKbZ#_Lbl-zNHEW4WagTkJpIpiMs4zgJaTuxfPAB8GRO1vJg" },
+              { name: "الاختبار 2 للفاينل", url: "https://mega.nz/file/lt4UVSCL#QQr_1UoSB4aWiTUmbCbS_V9gq8dJDlgm-J_Hz08Qc8s" },
+              { name: "الاختبار 3 للفاينل", url: "https://mega.nz/file/RhxjXK6C#6At7t3H4xKMSgazOKIWscY7_m3SJim_Zhxt02yBpvug" }
+            ],
+            summaries: [
+              { name: "ملخص المادة للميد", url: "https://mega.nz/file/o9J1FaoR#tiWxRpgubNTO2fztYY-sZCw9-ZF3hSEVQkjeiMRy7MI" }, 
+              { name: "ملخص المادة للفاينل", url: "https://mega.nz/file/p0ZQjaiL#i24N70Y0m3rQatL6qeQ8OzdLTWNIkV-AYHm5IT-pzRc" }
+            ],
+            books: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ]
+          }
+        }
+      },
+      cis: {
+        "الجامعة الاجباري": {
+          "الريادة والابتكار": {
+            testbanks: [
+              { name: "اختبار 1", url: "https://docs.google.com/forms/d/e/1FAIpQLSfCU6N3g3-Gz4hl1eMaI8qnRZbpCkCGjtdlfJrmuBwrp9Ak-A/viewform?usp=dialog" }
+            ],
+            summaries: [
+              { name: "ملخص الكتاب المقرر للمادة 2025", url: "https://mega.nz/file/4hwlHKBJ#YbF3i6qntexo9vcTgeGfYz3SbHkK2G6ihBLGuQW-mJA" },
+              { name: "ملخص الكتاب", url: "https://mega.nz/file/AoplGABL#cAoIOlEeQ1TIeOam8ywMEYm-tMo5LELLqCpOdPmKSzo" }
+            ],
+            books: [
+              { name: "كتاب الريادة والابتكار", url: "https://mega.nz/file/Rw4Q0ZqC#-Cf8NrFpK9rrH4-XhgZuAWYA--YdH_f-pd2y1EOh_wg" }
+            ]
+          },
+          "المهارات الحياتية والعملية": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص", url: "https://drive.google.com/file/d/18LjkCASkrHtUZG3Vod8T-qrNxLg-18R4/view?usp=sharing" }
+            ],
+            books: [
+              { name: "مهارات حياتية(تسويق الكتروني)", url: "https://mega.nz/file/spgXiDLS#Dxjp0hUIsWln1bhSlb9R0fEHuxCfxmKnGJWluCarbWY" },
+              { name: "مادة مهارات حياتية (قراءة ذاتية)", url: "https://mega.nz/file/d8BAUJiJ#HO64YjQpKzO91EVn-6grO1si4IYy7BRW2jZ2mhvWD4g" }
+            ]
+          }
+        },
+        "الجامعة الاختياري": {
+          "القدس": {
+            testbanks: [
+              { name: "الاختبار 1 للميد والفاينل", url: "https://t.me/jerusalemTestBank" },
+              { name: "الاختبار 2 للميد", url: "https://drive.google.com/file/d/1TX9SkYxoa2W_T46GtPUXcb6u-vhtGlr2/view?usp=sharing" },
+              { name: "الاختبار 3 للفاينل", url: "https://drive.google.com/file/d/18Y5Cw2dK_VXu0PG27WbvT_WkhaOIrlYM/view?usp=sharing" }
+            ],
+            summaries: [
+              { name: "ملخص", url: "https://drive.google.com/file/d/1AYCz-3T4jiLreHDBXSFYjhBOMMXoeQVZ/view?usp=sharing" }
+            ],
+            books: [
+              { name: "مادة القدس محددة", url: "https://drive.google.com/file/d/1aqK1H83YqVPC0PKMXJzJsGsjn_1U_PBE/view?usp=sharing" }
+            ]
+          }
+        },
+        "التخصص الاجباري": {
+          "منطق رقمي": {
+            testbanks: [
+              { name: "Not Available", url: "#" }
+            ],
+            summaries: [
+              { name: "ملخص 1 ملاحظة تحتج حساب بموقع Luminpdf.com حتى يفتح معك", url: "https://drive.google.com/file/d/1FKexfdiRC_KqFgk0rpRR9KesJR6dPe18/view?usp=sharing" },
+              { name: "ملخص 2", url: "https://drive.google.com/file/d/1yfhA_fE7PB-qTMRxLllIIMwqvmrNAn0L/view?usp=sharing" }
+            ],
+            books: [
+              { name: "الكتاب الاول", url: "https://mega.nz/file/U4pmDZQK#LSZPuwyw7R9z7FeF5hqI430RTlkb711b7qS_KsOCAR0" },
+              { name: "الكتاب الثاني", url: "https://mega.nz/file/QxogzbBb#wlZIK7p9x8EetY_ZgSZ75V6S-17cupWaPwauYR4Yrxg" }
+            ]
+          },
+          "شبكات الحاسوب (1)": {
+            testbanks: [
+              { name: "الاختبار 1", url: "https://t.me/+StZhylXa1sY5MDM0" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1iOSEIU48xB5XNWJDlYSrT9Nb6lwi2sA4/view?usp=sharing" }
+            ],
+           books: [
+              { name: "كتاب المادة 1", url: "https://mega.nz/file/J4gCFKTa#GybVO3h4nNisLciIAoXzUwRwcVYKrXAOLBDebt97yYs" },
+              { name: "كتات المادة 2", url: "https://mega.nz/file/h94HkCCS#oGcogYMcNB5md1uc1Zq6pQS7gbpts6ef9_IY0UzyMrM" }
+            ]
+          },
+          "تطوير تطبيقات الويب (2)": {
+            testbanks: [
+              { name: "الاختبار 1", url: "https://drive.google.com/file/d/1MJztvFqsTHMO_biaqDhMo6c3jnuc5xbQ/view?usp=sharing" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1GKqKBKd4KZNh-Li7khi2O_pMrhyAtoRi/view?usp=sharing" }
+            ],
+            books: [
+              { name: "كتاب المادة", url: "https://mega.nz/file/x4B0USpb#4DpoBHi5CF4KQVhAtB1nKfAfTRpsrw-mFSPQ2-ZY7A4" }
+            ]
+          },
+          "برمجة الكالنات الموجهة(1)": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1mBQxvkgsE0hoKmNrrmGEzDRWWiR-soul/view?usp=sharing" }
+            ],
+            books: [
+              { name: "كتاب المادة", url: "https://mega.nz/file/J5xlAbJS#tS5_fgstHXKig5jU9YIbaGYMtafCRGZj6IB5gUGXg5Y" }
+            ]
+          },
+          "الذكاء الاصطناعي": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1s1y9ygiBkfXrJf7EKRaRoDUr0n9vG3PA/view?usp=sharing" }
+            ],
+            books: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ]
+          },
+          "مستودعات البيانات والتنقيب عن البيانات": {
+            testbanks: [
+              { name: "الاختبار 1", url: "https://t.me/+CbggANGqjtliNjU0" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1OsrT8ICZppcXd5zYA-gFbHIb7Fk-HLP9/view?usp=sharing" }
+            ],
+            books: [
+              { name: "كتاب المادة", url: "https://mega.nz/file/dpI1AIzL#DwfYM3cWekvb42JZpxL_Yyz3y7mBeoDJ6f64MCxzaSg" }
+            ]
+          },
+          "سرية وأمان المعلومات": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1VnQI8NCx3R35W2Af8dVmPDTv8A03fxj9/view?usp=sharing" }
+            ],
+            books: [
+              { name: "كتاب المادة", url: "https://mega.nz/file/5gYSlB6A#6IQ1GX3k8xkK0OcwlVERxZCTtfUDIi00ivcKlq3PBwo" }
+            ]
+          },
+          "لغات قواعد البيانات وادواتها": {
+            testbanks: [
+              { name: "الاختبار 1", url: "https://drive.google.com/file/d/1V0qgS9Wa-xOD4PbqVWvP4xKlbsjEYatI/view?usp=sharing" },
+              { name: "الاختبار 2", url: "https://drive.google.com/file/d/1ou_xip3KTd3fI2CAUydZZMvMLMKrlJxz/view?usp=sharing" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1TSXgnPdpe_NMGyxxFFto0feaOQ84418p/view?usp=sharing" }
+            ],
+            books: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ]
+          },
+          "البرمجة المرئية": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1sFYEqMtXdH79SNh2dXKaA5WD9P_gbT0T/view?usp=sharing" }
+            ],
+            books: [
+              { name: "كتاب المادة", url: "https://mega.nz/file/4pZyxYAb#jZKGgrMiDM2yw7_W229l_Nowz08jCu0xGmzeloKcnMU" }
+            ]
+          }
+        },
+        "التخصص الاختياري": {
+          "نظم ادارة المعرفة": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1aL5gVLk_IwrxK2kmemN6YqgaqZTrnPi7/view?usp=sharing" }
+            ],
+            books: [
+              { name: "كتاب المادة", url: "https://mega.nz/file/UlgWBY5a#oQsaxMUwgi4oj8205fvB7iK76gsDDTwlfxLCBh-kcYM" }
+            ]
+          },
+          "الاعمال الالكترونية": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1gUEHzxwrxuy7VZI-OD44i4-IZEDTvtkz/view?usp=sharing" }
+            ],
+            books: [
+              { name: "كتاب المادة", url: "https://mega.nz/file/Q0hFTAZZ#W5VaqqX4BcAVqqUq_DQtZUphHu5Q5mTy_2go8Ff52yw" }
+            ]
+          },
+          "الوسائط المتعددة": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1KJROMKh8OS3gt6QfkTJVXxMOw9xDL9T7/view?usp=sharing" }
+            ],
+            books: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ]
+          },
+        },
+        "الكلية الاجباري": {
+          "التفاضل والتكامل": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1lIpdEfYv_0OJe3BM1Kx8c_EgJtOnUM3X/view?usp=sharing" }
+            ],
+            books: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ]
+          },
+          "نظم قواعد البيانات": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1O2atbSgl30T__ILKd8qVS-KlLZWwrK8Z/view?usp=sharing" }
+            ],
+            books: [
+              { name: "كتاب المادة", url: "https://mega.nz/file/wopngYhQ#g8VGEn5l77KBHjMMNRsq3uAhzsNOuyIC7RJR2Bx9jUE" }
+            ]
+          },
+          "تطوير تطبيقات الويب (1)": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1tfyLGHejIQBf9BGWl5HrV-cGJ7ktnXje/view?usp=sharing" }
+            ],
+            books: [
+              { name: "كتاب المادة", url: "https://mega.nz/file/RgJCFbaD#qYJSyE1YyPrRo_su_HYiAGFoCVpF5CIG9V5kniv3nTM" }
+            ]
+          }
+        },
+        "اجبارية عامة": {
+          "مهارات اللغة العربية": {
+            testbanks: [
+              { name: "الاختبار 1 للفاينل", url: "https://mega.nz/file/B54TXKbZ#_Lbl-zNHEW4WagTkJpIpiMs4zgJaTuxfPAB8GRO1vJg" },
+              { name: "الاختبار 2 للفاينل", url: "https://mega.nz/file/lt4UVSCL#QQr_1UoSB4aWiTUmbCbS_V9gq8dJDlgm-J_Hz08Qc8s" },
+              { name: "الاختبار 3 للفاينل", url: "https://mega.nz/file/RhxjXK6C#6At7t3H4xKMSgazOKIWscY7_m3SJim_Zhxt02yBpvug" }
+            ],
+            summaries: [
+              { name: "ملخص المادة للميد", url: "https://mega.nz/file/o9J1FaoR#tiWxRpgubNTO2fztYY-sZCw9-ZF3hSEVQkjeiMRy7MI" }, 
+              { name: "ملخص المادة للفاينل", url: "https://mega.nz/file/p0ZQjaiL#i24N70Y0m3rQatL6qeQ8OzdLTWNIkV-AYHm5IT-pzRc" }
+            ],
+            books: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ]
+          }
+        }
+      },
+      cyber: {
+        "الجامعة الاجباري": {
+          "الريادة والابتكار": {
+            testbanks: [
+              { name: "اختبار 1", url: "https://docs.google.com/forms/d/e/1FAIpQLSfCU6N3g3-Gz4hl1eMaI8qnRZbpCkCGjtdlfJrmuBwrp9Ak-A/viewform?usp=dialog" }
+            ],
+            summaries: [
+              { name: "ملخص الكتاب المقرر للمادة 2025", url: "https://mega.nz/file/4hwlHKBJ#YbF3i6qntexo9vcTgeGfYz3SbHkK2G6ihBLGuQW-mJA" },
+              { name: "ملخص الكتاب", url: "https://mega.nz/file/AoplGABL#cAoIOlEeQ1TIeOam8ywMEYm-tMo5LELLqCpOdPmKSzo" }
+            ],
+            books: [
+              { name: "كتاب الريادة والابتكار", url: "https://mega.nz/file/Rw4Q0ZqC#-Cf8NrFpK9rrH4-XhgZuAWYA--YdH_f-pd2y1EOh_wg" }
+            ]
+          },
+          "المهارات الحياتية والعملية": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص", url: "https://drive.google.com/file/d/18LjkCASkrHtUZG3Vod8T-qrNxLg-18R4/view?usp=sharing" }
+            ],
+            books: [
+              { name: "مهارات حياتية(تسويق الكتروني)", url: "https://mega.nz/file/spgXiDLS#Dxjp0hUIsWln1bhSlb9R0fEHuxCfxmKnGJWluCarbWY" },
+              { name: "مادة مهارات حياتية (قراءة ذاتية)", url: "https://mega.nz/file/d8BAUJiJ#HO64YjQpKzO91EVn-6grO1si4IYy7BRW2jZ2mhvWD4g" }
+            ]
+          }
+        },
+        "الجامعة الاختياري": {
+          "القدس": {
+            testbanks: [
+              { name: "الاختبار 1 للميد والفاينل", url: "https://t.me/jerusalemTestBank" },
+              { name: "الاختبار 2 للميد", url: "https://drive.google.com/file/d/1TX9SkYxoa2W_T46GtPUXcb6u-vhtGlr2/view?usp=sharing" },
+              { name: "الاختبار 3 للفاينل", url: "https://drive.google.com/file/d/18Y5Cw2dK_VXu0PG27WbvT_WkhaOIrlYM/view?usp=sharing" }
+            ],
+            summaries: [
+              { name: "ملخص", url: "https://drive.google.com/file/d/1AYCz-3T4jiLreHDBXSFYjhBOMMXoeQVZ/view?usp=sharing" }
+            ],
+            books: [
+              { name: "مادة القدس محددة", url: "https://drive.google.com/file/d/1aqK1H83YqVPC0PKMXJzJsGsjn_1U_PBE/view?usp=sharing" }
+            ]
+          }
+        },
+        "التخصص الاجباري": {
+          "شبكات الحاسوب (1)": {
+            testbanks: [
+              { name: "الاختبار 1", url: "https://t.me/+StZhylXa1sY5MDM0" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1iOSEIU48xB5XNWJDlYSrT9Nb6lwi2sA4/view?usp=sharing" }
+            ],
+            books: [
+              { name: "1 كتاب المادة", url: "https://mega.nz/file/J4gCFKTa#GybVO3h4nNisLciIAoXzUwRwcVYKrXAOLBDebt97yYs" },
+              { name: "2 كتاب المادة", url: "https://mega.nz/file/h94HkCCS#oGcogYMcNB5md1uc1Zq6pQS7gbpts6ef9_IY0UzyMrM" }
+            ]
+          },
+          "مستودعات البيانات والتنقيب عن البيانات": {
+            testbanks: [
+              { name: "الاختبار 1", url: "https://t.me/+CbggANGqjtliNjU0" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1OsrT8ICZppcXd5zYA-gFbHIb7Fk-HLP9/view?usp=sharing" }
+            ],
+            books: [
+              { name: "كتاب المادة", url: "https://mega.nz/file/dpI1AIzL#DwfYM3cWekvb42JZpxL_Yyz3y7mBeoDJ6f64MCxzaSg" }
+            ]
+          },
+          "الذكاء الاصطناعي": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1s1y9ygiBkfXrJf7EKRaRoDUr0n9vG3PA/view?usp=sharing" }
+            ],
+            books: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ]
+          }
+        },
+        "التخصص الاختياري": {
+         "لغات قواعد البيانات وادواتها": {
+            testbanks: [
+              { name: "الاختبار 1", url: "https://drive.google.com/file/d/1V0qgS9Wa-xOD4PbqVWvP4xKlbsjEYatI/view?usp=sharing" },
+              { name: "الاختبار 2", url: "https://drive.google.com/file/d/1ou_xip3KTd3fI2CAUydZZMvMLMKrlJxz/view?usp=sharing" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1TSXgnPdpe_NMGyxxFFto0feaOQ84418p/view?usp=sharing" }
+            ],
+            books: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ]
+          },
+          "الوسائط المتعددة": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1KJROMKh8OS3gt6QfkTJVXxMOw9xDL9T7/view?usp=sharing" }
+            ],
+            books: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ]
+          },
+          "تطوير تطبيقات الويب (2)": {
+            testbanks: [
+              { name: "الاختبار 1", url: "https://drive.google.com/file/d/1MJztvFqsTHMO_biaqDhMo6c3jnuc5xbQ/view?usp=sharing" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1GKqKBKd4KZNh-Li7khi2O_pMrhyAtoRi/view?usp=sharing" }
+            ],
+            books: [
+              { name: "كتاب المادة", url: "https://mega.nz/file/x4B0USpb#4DpoBHi5CF4KQVhAtB1nKfAfTRpsrw-mFSPQ2-ZY7A4" }
+            ]
+          }
+        },
+        "الكلية الاجباري": {
+          "التفاضل والتكامل": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1lIpdEfYv_0OJe3BM1Kx8c_EgJtOnUM3X/view?usp=sharing" }
+            ],
+            books: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ]
+          },
+          "نظم قواعد البيانات": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1O2atbSgl30T__ILKd8qVS-KlLZWwrK8Z/view?usp=sharing" }
+            ],
+            books: [
+              { name: "كتاب المادة", url: "https://mega.nz/file/wopngYhQ#g8VGEn5l77KBHjMMNRsq3uAhzsNOuyIC7RJR2Bx9jUE" }
+            ]
+          },
+          "تطوير تطبيقات الويب (1)": {
+            testbanks: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ],
+            summaries: [
+              { name: "ملخص المادة", url: "https://drive.google.com/file/d/1tfyLGHejIQBf9BGWl5HrV-cGJ7ktnXje/view?usp=sharing" }
+            ],
+            books: [
+              { name: "كتاب المادة", url: "https://mega.nz/file/RgJCFbaD#qYJSyE1YyPrRo_su_HYiAGFoCVpF5CIG9V5kniv3nTM" }
+            ]
+          }
+        },
+        "اجبارية عامة": {
+         "مهارات اللغة العربية": {
+            testbanks: [
+              { name: "الاختبار 1 للفاينل", url: "https://mega.nz/file/B54TXKbZ#_Lbl-zNHEW4WagTkJpIpiMs4zgJaTuxfPAB8GRO1vJg" },
+              { name: "الاختبار 2 للفاينل", url: "https://mega.nz/file/lt4UVSCL#QQr_1UoSB4aWiTUmbCbS_V9gq8dJDlgm-J_Hz08Qc8s" },
+              { name: "الاختبار 3 للفاينل", url: "https://mega.nz/file/RhxjXK6C#6At7t3H4xKMSgazOKIWscY7_m3SJim_Zhxt02yBpvug" }
+            ],
+            summaries: [
+              { name: "ملخص المادة للميد", url: "https://mega.nz/file/o9J1FaoR#tiWxRpgubNTO2fztYY-sZCw9-ZF3hSEVQkjeiMRy7MI" }, 
+              { name: "ملخص المادة للفاينل", url: "https://mega.nz/file/p0ZQjaiL#i24N70Y0m3rQatL6qeQ8OzdLTWNIkV-AYHm5IT-pzRc" }
+            ],
+            books: [
+              { name: "Not Available", url: "https://img.freepik.com/free-vector/coming-soon-banner-with-focus-lights_1017-33739.jpg" }
+            ]
+          }
+        }
+      }
+    };
+
+    function loadCategories() {
+      const major = document.getElementById("major").value;
+      const categorySelect = document.getElementById("category");
+      const topicSelect = document.getElementById("topic");
+
+      categorySelect.innerHTML = '<option value="">-- اختر القسم --</option>';
+      topicSelect.innerHTML = '<option value="">-- اختر المادة --</option>';
+      document.getElementById("content").style.display = "none";
+
+      if (major && data[major]) {
+        categorySelect.disabled = false;
+        Object.keys(data[major]).forEach(category => {
+          const option = document.createElement("option");
+          option.value = category;
+          option.textContent = category;
+          categorySelect.appendChild(option);
+        });
+      } else {
+        categorySelect.disabled = true;
+        topicSelect.disabled = true;
+      }
+    }
+
+    function loadTopics() {
+      const major = document.getElementById("major").value;
+      const category = document.getElementById("category").value;
+      const topicSelect = document.getElementById("topic");
+
+      topicSelect.innerHTML = '<option value="">-- اختر المادة --</option>';
+      document.getElementById("content").style.display = "none";
+
+      if (major && category && data[major][category]) {
+        topicSelect.disabled = false;
+        Object.keys(data[major][category]).forEach(topic => {
+          const option = document.createElement("option");
+          option.value = topic;
+          option.textContent = topic;
+          topicSelect.appendChild(option);
+        });
+      } else {
+        topicSelect.disabled = true;
+      }
+    }
+
+    function loadContent() {
+      const major = document.getElementById("major").value;
+      const category = document.getElementById("category").value;
+      const topic = document.getElementById("topic").value;
+      const content = data[major]?.[category]?.[topic];
+
+      document.getElementById("testbanksList").innerHTML = "";
+      document.getElementById("summariesList").innerHTML = "";
+      document.getElementById("booksList").innerHTML = "";
+
+      if (content) {
+        renderLinks("testbanksList", content.testbanks);
+        renderLinks("summariesList", content.summaries);
+        renderLinks("booksList", content.books);
+        document.getElementById("content").style.display = "block";
+      } else {
+        document.getElementById("content").style.display = "none";
+      }
+    }
+
+    function renderLinks(elementId, items) {
+      const list = document.getElementById(elementId);
+      if (!items || items.length === 0) {
+        const li = document.createElement("li");
+        li.textContent = "لا يوجد محتوى";
+        li.className = "no-content";
+        list.appendChild(li);
+        return;
+      }
+
+      items.forEach(item => {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.href = item.url;
+        a.target = "_blank";
+        a.textContent = item.name;
+        li.appendChild(a);
+        list.appendChild(li);
+      });
+    }
+  </script>
+
+</body>
+</html>
